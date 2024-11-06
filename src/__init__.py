@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 from src.books.router import router
 
-version = 'v1'
+version = "v1"
 
 app = FastAPI(
     title="Bookly",
