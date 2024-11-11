@@ -1,2 +1,7 @@
 fastapi
 fastapi[standard] # "fastapi[standard]"
+pydantic-settingsexit
+python-dotenv
+sqlmodel
+psycopg2
+asyncpg
