@@ -1,62 +1,67 @@
-from fastapi import (APIRouter, HTTPException, status,)
 from typing import List
 
+from fastapi import (APIRouter, HTTPException, status, Depends,)
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 from src.books.database import books
-from src.books.schemas import (Book, UpdateBookRequest,)
+from src.books.schemas import (Book, UpdateBookRequest, BookCreateModel, BookResponse,)
+from src.books.service import BookService
+from src.db.main import get_session
 
 
 router = APIRouter()
+book_service = BookService()
 
-@router.get("/books", response_model=List[Book])
-def get_all_books():
+@router.get("/", response_model=List[Book])
+async def get_all_books(
+    session: AsyncSession = Depends(get_session)
+):
+    books = await book_service.get_all_books(session=session)
     return books
 
-@router.post("/book", status_code=status.HTTP_201_CREATED)
-def add_book(payload:Book) -> dict:
-    new_book = payload.model_dump()
-    books.append(new_book)
+@router.post("/", status_code=status.HTTP_201_CREATED)
+async def add_book(payload:BookCreateModel, session: AsyncSession = Depends(get_session)) -> dict:
+    new_book = await book_service.create_book(payload,session)
 
-    return new_book
+    return new_book.model_dump()
 
-@router.get("/book/{book_id}", response_model=Book)
-def get_book_by_id(book_id:int) -> dict:
-    for book in books:
-        if book["id"] == book_id:
-            return book
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Book Not Found"
-    )
-
-@router.patch("/book/{book_id}")
-def update_book(book_id:int,update_data:UpdateBookRequest) -> dict:
-    for book in books:
-        if book["id"] == book_id:
-            if update_data.title is not None:
-                book["title"] =  update_data.title
-            if update_data.author is not None:
-                book["author"] = update_data.author
-            if update_data.publisher is not None:
-                book["publisher"] = update_data.publisher
-            if update_data.language is not None:
-                book["language"] = update_data.language
-
-            return book
+@router.get("/{book_uid}", response_model=BookResponse)
+async def get_book_by_id(
+    book_uid:str,
+    session: AsyncSession = Depends(get_session)
+):
+    book = await book_service.get_book(book_uid,session)
+    if not book:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book Not Found"
+        )
     
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Book Not Found"
-    )
+    return book
+
+@router.patch("/{book_uid}")
+async def update_book(book_uid:str, update_data:UpdateBookRequest, session: AsyncSession = Depends(get_session)):
+    updated_book = await book_service.update_book(book_uid, update_data, session)
+
+    if not update_book: 
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book Not Found"
+        )
+    
+    return updated_book
 
 
 
-@router.delete("/book/{book_id}")
-def delete_book(book_id:int):
-    for book in books:
-        if book["id"] == book_id:
-            return books.remove(book)
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Book Not Found"
-    )
+@router.delete("/{book_uid}")
+async def delete_book(book_uid:str,session: AsyncSession = Depends(get_session)):
+    book_to_delete = await book_service.delete_book(book_uid, session)
+
+    if book_to_delete is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Book Not Found"
+        )
+    
+    return {}
     
