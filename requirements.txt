@@ -6,3 +6,5 @@ sqlmodel
 psycopg2
 asyncpg
 alembic
+passlib
+pyjwt[crypto]
