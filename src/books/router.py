@@ -7,20 +7,23 @@ from src.books.database import books
 from src.books.schemas import (Book, UpdateBookRequest, BookCreateModel, BookResponse,)
 from src.books.service import BookService
 from src.db.main import get_session
+from src.auth.dependencies import AccessTokenBearer
 
 
 router = APIRouter()
 book_service = BookService()
+access_token_bearer = AccessTokenBearer()
 
-@router.get("/", response_model=List[Book])
+@router.get("/", response_model=List[BookResponse])
 async def get_all_books(
-    session: AsyncSession = Depends(get_session)
+    session: AsyncSession = Depends(get_session),
+    token_details=Depends(access_token_bearer)
 ):
     books = await book_service.get_all_books(session=session)
     return books
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-async def add_book(payload:BookCreateModel, session: AsyncSession = Depends(get_session)) -> dict:
+async def add_book(payload:BookCreateModel, session: AsyncSession = Depends(get_session), token_details=Depends(access_token_bearer)) -> dict:
     new_book = await book_service.create_book(payload,session)
 
     return new_book.model_dump()

@@ -15,9 +15,7 @@ user_service =  UserService()
 
 REFRESH_TOKEN_EXPIRY = 6000
 
-@auth_router.post(
-    "/signup", status_code=status.HTTP_201_CREATED
-)
+@auth_router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user_account(
     user_data: UserCreateModel, session: AsyncSession = Depends(get_session)
 ):
