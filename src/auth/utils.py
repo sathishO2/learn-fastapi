@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 from datetime import (datetime, timedelta)
 
 import jwt
@@ -22,7 +23,7 @@ def create_access_token(
     payload = {
         'user': user_data,
         'exp': datetime.now() + (expiry if expiry is not None else timedelta(minutes=60)),
-        'jit': str(uuid.uuid4()),
+        'jti': str(uuid.uuid4()),
         'refresh': refresh,
     }
 
@@ -34,18 +35,22 @@ def create_access_token(
 
     return token
 
-def decode_token(token: str) -> dict:
+def decode_token(token: str) -> Optional[dict]:
     try:
+        # Decode the token using the secret key and algorithm
         token_data = jwt.decode(
             jwt=token,
+            key=Config.JWT_SECRET,  # Replace with your secret key
             algorithms=[Config.JWT_ALGORITHM]
         )
-
         return token_data
-    except jwt.PyJWTError as jwte:
-        print(jwte)
+
+    except jwt.ExpiredSignatureError:
+        print("Token has expired.")
         return None
-    
+    except jwt.InvalidTokenError:
+        print("Invalid token.")
+        return None
     except Exception as e:
-        print(e)
+        print(f"Unexpected error: {e}")
         return None

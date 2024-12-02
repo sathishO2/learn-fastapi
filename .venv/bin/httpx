@@ -1,6 +1,4 @@
-#!/bin/sh
-'''exec' "/home/ib-58/Desktop/fast-api /bookly/.venv/bin/python" "$0" "$@"
-' '''
+#!/home/ib-58/Desktop/fast-api/bookly/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
