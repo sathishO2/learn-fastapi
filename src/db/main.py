@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 from src.config import Config
 from sqlmodel import SQLModel
-from src.books.models import Book
+from src.db.models import Book
 
 
 engine = AsyncEngine(
