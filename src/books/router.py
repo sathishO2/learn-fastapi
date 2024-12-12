@@ -7,14 +7,15 @@ from src.books.database import books
 from src.books.schemas import (Book, UpdateBookRequest, BookCreateModel, BookResponse,)
 from src.books.service import BookService
 from src.db.main import get_session
-from src.auth.dependencies import AccessTokenBearer
+from src.auth.dependencies import (AccessTokenBearer, RoleChecker,)
 
 
 router = APIRouter()
 book_service = BookService()
 access_token_bearer = AccessTokenBearer()
+role_checker = Depends(RoleChecker(["admin","user"]))
 
-@router.get("/", response_model=List[BookResponse])
+@router.get("/", response_model=List[BookResponse], dependencies=[role_checker])
 async def get_all_books(
     session: AsyncSession = Depends(get_session),
     token_details=Depends(access_token_bearer),
@@ -22,13 +23,13 @@ async def get_all_books(
     books = await book_service.get_all_books(session=session)
     return books
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED, dependencies=[role_checker])
 async def add_book(payload:BookCreateModel, session: AsyncSession = Depends(get_session), token_details=Depends(access_token_bearer)) -> dict:
     new_book = await book_service.create_book(payload,session)
 
     return new_book.model_dump()
 
-@router.get("/{book_uid}", response_model=BookResponse)
+@router.get("/{book_uid}", response_model=BookResponse, dependencies=[role_checker])
 async def get_book_by_id(
     book_uid:str,
     session: AsyncSession = Depends(get_session),
@@ -43,7 +44,7 @@ async def get_book_by_id(
     
     return book
 
-@router.patch("/{book_uid}")
+@router.patch("/{book_uid}", dependencies=[role_checker])
 async def update_book(book_uid:str, update_data:UpdateBookRequest, session: AsyncSession = Depends(get_session),token_details=Depends(access_token_bearer),):
     updated_book = await book_service.update_book(book_uid, update_data, session)
 
@@ -57,7 +58,7 @@ async def update_book(book_uid:str, update_data:UpdateBookRequest, session: Asyn
 
 
 
-@router.delete("/{book_uid}")
+@router.delete("/{book_uid}", dependencies=[role_checker])
 async def delete_book(book_uid:str,session: AsyncSession = Depends(get_session),token_details=Depends(access_token_bearer),):
     book_to_delete = await book_service.delete_book(book_uid, session)
 
