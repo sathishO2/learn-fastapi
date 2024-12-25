@@ -18,6 +18,7 @@ from contextlib import asynccontextmanager
 
 from src.books.router import router
 from src.auth.routers import auth_router
+from src.reviews.router import review_router
 from src.db.main import initdb
 
 @asynccontextmanager
@@ -33,8 +34,9 @@ app = FastAPI(
     title="Bookly",
     description="to learn fast-api",
     version=version,
-    lifespan=lifespan,
+    # lifespan=lifespan,
 )
 
 app.include_router(auth_router,prefix=f"/api/{version}/auth",tags=["authentication"])
 app.include_router(router, prefix=f"/api/{version}/books",tags=['books'])
+app.include_router(review_router, prefix=f"/api/{version}/reviews", tags=["reviews"])
