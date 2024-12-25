@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from src.config import Config
 from src.db.main import get_session
-from .schemas import (UserCreateModel,UserLoginModel,)
+from .schemas import (UserCreateModel,UserLoginModel, UserBooksModel)
 from .utils import create_access_token, verify_password
 from .service import UserService
 from .dependencies import (RefreshTokenBearer, AccessTokenBearer, RoleChecker, get_current_user,)
@@ -19,12 +19,34 @@ role_checker = RoleChecker(["admin","user"])
 
 REFRESH_TOKEN_EXPIRY = 6000
 
-@auth_router.get("/me")
+@auth_router.get("/me", response_model=UserBooksModel)
 async def get_current_user(
     user=Depends(get_current_user),
     _: bool = Depends(role_checker)
 ):
-    return user
+    user_dict = {
+        "uid": user.uid,
+        "username": user.username,
+        "email": user.email,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "is_verified": user.is_verified,
+        "password_hash": user.password_hash,
+        "created_at": user.created_at.isoformat(),
+        "books": [
+            {
+                "uid": book.uid,
+                "title": book.title,
+                "author": book.author,
+                "publisher": book.publisher,
+                "published_date": book.published_date.isoformat(),
+                "page_count": book.page_count,
+                "language": book.language,
+            }
+            for book in user.books
+        ],
+    }
+    return user_dict
 
 @auth_router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def create_user_account(
