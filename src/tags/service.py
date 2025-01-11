@@ -86,7 +86,7 @@ class TagService:
     
     async def delete_tag(self, tag_uid: str, session: AsyncSession):
         """Delete a tag"""
-        tag = self.get_tag_by_uid(tag_uid=tag_uid, session=session)
+        tag = await self.get_tag_by_uid(tag_uid=tag_uid, session=session)
         if not tag:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Tag dose not exist"
