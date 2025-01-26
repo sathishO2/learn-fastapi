@@ -11,7 +11,7 @@ from src.db.models import Book
 engine = AsyncEngine(
     create_engine(
         url=Config.DATABASE_URL,
-        echo=True,
+        echo=False, # for terminal print
     )
 )
 

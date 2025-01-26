@@ -22,6 +22,7 @@ from src.reviews.routes import review_router
 from src.tags.routes import tags_router
 from src.db.main import initdb
 from src.errors import register_error_handlers
+from src.middleware import register_middleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -40,6 +41,7 @@ app = FastAPI(
 )
 
 register_error_handlers(app)
+register_middleware(app)
 
 app.include_router(auth_router,prefix=f"/api/{version}/auth",tags=["authentication"])
 app.include_router(router, prefix=f"/api/{version}/books",tags=['books'])
